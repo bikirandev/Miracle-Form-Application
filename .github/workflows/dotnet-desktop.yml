@@ -40,18 +40,18 @@ jobs:
               uses: google-github-actions/upload-cloud-storage@v1
               with:
                   path: ./publish/WinFormsApp1.exe
-                  destination: published-apps-frontend/appid-${{ vars.APP_ID }}/subid-${{ vars.SUB_ID }}/version-${{ env.VERSION }}
+                  destination: published-apps-frontend/appid-${{ vars.APP_ID }}/subid-${{ vars.SUB_ID }}/version-1.0.0
                   process_gcloudignore: false
                   gzip: true
                   resumable: true
                   parent: true
                   concurrency: 100
               env:
-                  GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+                  GCP_PROJECT: ${{ vars.GCP_PROJECT }}
 
             - name: Notify Publish API
               run: |
                   curl -X POST \
                   -H "Content-Type: application/json" \
                   https://portal.miracleadvance.com/SwiftBackendAPI/api/publish/add-new-publish \
-                  -d '{"appId": ${{ vars.APP_ID }}, "subId": ${{ vars.SUB_ID }}, "version": "'${{ env.VERSION }}'", "publishType": "frontend", "secret": "IfpzonhKqTojGAYr2QEecERFIxOf0IYzgkkMfyZd9tKcIvu4hW3S83EQ3vQ9uMp2qwU1b3x3FY7N5YIcKFD2eg3aDhmsW3fNcJPyf1lD7m13z0J9VhvWBEsNYn49rfMi"}'
+                  -d '{"appId": ${{ vars.APP_ID }}, "subId": ${{ vars.SUB_ID }}, "version": "1.0.0", "publishType": "app1", "secret": "IfpzonhKqTojGAYr2QEecERFIxOf0IYzgkkMfyZd9tKcIvu4hW3S83EQ3vQ9uMp2qwU1b3x3FY7N5YIcKFD2eg3aDhmsW3fNcJPyf1lD7m13z0J9VhvWBEsNYn49rfMi"}'
