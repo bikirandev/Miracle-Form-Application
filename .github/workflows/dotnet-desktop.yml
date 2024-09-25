@@ -28,13 +28,7 @@ jobs:
               run: dotnet restore ./WinFormsApp1/WinFormsApp1/WinFormsApp1.csproj
 
             - name: Publish Project
-              run: dotnet publish ./WinFormsApp1/WinFormsApp1/WinFormsApp1.csproj -c Release -o ./publish
-
-            - name: Archive Build Output
-              run: |
-                  cd publish
-                  zip -r ../publish.zip ./*
-                  cd ..
+              run: dotnet publish ./WinFormsApp1/WinFormsApp1/WinFormsApp1.csproj -c Release -r win-x64 -p:PublishSingleFile=true -o ./publish
 
             - name: Authenticate to Google Cloud
               id: auth
@@ -45,7 +39,7 @@ jobs:
             - name: Upload to Google Cloud Storage
               uses: google-github-actions/upload-cloud-storage@v1
               with:
-                  path: publish.zip
+                  path: ./publish/WinFormsApp1.exe
                   destination: published-apps-frontend/appid-${{ vars.APP_ID }}/subid-${{ vars.SUB_ID }}/version-${{ env.VERSION }}
                   process_gcloudignore: false
                   gzip: true
