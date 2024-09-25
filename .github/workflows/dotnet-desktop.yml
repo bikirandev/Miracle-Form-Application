@@ -1,0 +1,63 @@
+name: Publish WinForms App
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build:
+        runs-on: windows-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v2
+
+            - name: Setup .NET Core SDK
+              uses: actions/setup-dotnet@v3
+              with:
+                  dotnet-version: '8.0'  # Specify your .NET version
+
+            - name: Configure Git User Email
+              run: git config --global user.email "info@bikiran.com"
+
+            - name: Configure Git User Name
+              run: git config --global user.name "Kumar Bishojit Paul"
+
+            - name: Restore NuGet Packages
+              run: dotnet restore ./WinFormsApp1/WinFormsApp1/WinFormsApp1.csproj
+
+            - name: Publish Project
+              run: dotnet publish ./WinFormsApp1/WinFormsApp1/WinFormsApp1.csproj -c Release -o ./publish
+
+            - name: Archive Build Output
+              run: |
+                  cd publish
+                  zip -r ../publish.zip ./*
+                  cd ..
+
+            - name: Authenticate to Google Cloud
+              id: auth
+              uses: google-github-actions/auth@v1
+              with:
+                  credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+            - name: Upload to Google Cloud Storage
+              uses: google-github-actions/upload-cloud-storage@v1
+              with:
+                  path: publish.zip
+                  destination: published-apps-frontend/appid-${{ vars.APP_ID }}/subid-${{ vars.SUB_ID }}/version-${{ env.VERSION }}
+                  process_gcloudignore: false
+                  gzip: true
+                  resumable: true
+                  parent: true
+                  concurrency: 100
+              env:
+                  GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+
+            - name: Notify Publish API
+              run: |
+                  curl -X POST \
+                  -H "Content-Type: application/json" \
+                  https://portal.miracleadvance.com/SwiftBackendAPI/api/publish/add-new-publish \
+                  -d '{"appId": ${{ vars.APP_ID }}, "subId": ${{ vars.SUB_ID }}, "version": "'${{ env.VERSION }}'", "publishType": "frontend", "secret": "IfpzonhKqTojGAYr2QEecERFIxOf0IYzgkkMfyZd9tKcIvu4hW3S83EQ3vQ9uMp2qwU1b3x3FY7N5YIcKFD2eg3aDhmsW3fNcJPyf1lD7m13z0J9VhvWBEsNYn49rfMi"}'
